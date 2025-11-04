@@ -1,0 +1,12 @@
+<odoo>
+  <record id="group_branch_request_user" model="res.groups">
+    <field name="name">Branch Request User</field>
+    <field name="category_id" ref="base.module_category_inventory"/>
+  </record>
+
+  <record id="group_branch_request_manager" model="res.groups">
+    <field name="name">Branch Request Manager</field>
+    <field name="category_id" ref="base.module_category_inventory"/>
+    <field name="implied_ids" eval="[(4, ref('group_branch_request_user'))]"/>
+  </record>
+</odoo>

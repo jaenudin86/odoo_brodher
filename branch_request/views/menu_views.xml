@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    
+    <!-- Top Menu -->
+    <menuitem id="menu_branch_request_root"
+              name="Branch Requests"
+              sequence="25"
+              web_icon="branch_request,static/description/icon.png"/>
+    
+    <!-- Operations Menu -->
+    <menuitem id="menu_branch_request_operations"
+              name="Operations"
+              parent="menu_branch_request_root"
+              sequence="10"/>
+    
+    <!-- Outgoing Requests -->
+    <menuitem id="menu_branch_request_outgoing"
+              name="Outgoing Requests"
+              parent="menu_branch_request_operations"
+              action="action_branch_request_outgoing"
+              sequence="10"/>
+    
+    <!-- Incoming Requests -->
+    <menuitem id="menu_branch_request_incoming"
+              name="Incoming Requests"
+              parent="menu_branch_request_operations"
+              action="action_branch_request_incoming"
+              sequence="20"/>
+    
+    <!-- All Requests -->
+    <menuitem id="menu_branch_request_all"
+              name="All Requests"
+              parent="menu_branch_request_operations"
+              action="action_branch_request_all"
+              sequence="30"/>
+    
+    <!-- Link to Internal Transfers -->
+    <menuitem id="menu_branch_transfers"
+              name="Internal Transfers"
+              parent="menu_branch_request_root"
+              action="stock.action_picking_tree_internal"
+              sequence="20"/>
+
+</odoo>

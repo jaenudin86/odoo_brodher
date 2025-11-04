@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Form View -->
+    <record id="view_stock_picking_branch_request_form" model="ir.ui.view">
+        <field name="name">stock.picking.branch.request.form</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <!-- Tambah field di header untuk status -->
+            <xpath expr="//header" position="inside">
+                <button name="action_submit_request"
+                        string="Submit Request"
+                        type="object"
+                        class="btn-primary"
+                        invisible="transfer_state != 'draft'"
+                        confirm="Apakah Anda yakin ingin submit request ini?"/>
+                <button name="action_approve_request"
+                        string="Approve"
+                        type="object"
+                        class="btn-success"
+                        invisible="transfer_state != 'submitted'"
+                        groups="stock.group_stock_manager"/>
+                <button name="action_reject_request"
+                        string="Reject"
+                        type="object"
+                        class="btn-danger"
+                        invisible="transfer_state != 'submitted'"
+                        groups="stock.group_stock_manager"/>
+                <field name="transfer_state" widget="statusbar" 
+                       statusbar_visible="draft,submitted,approved,rejected"/>
+            </xpath>
+
+            <!-- Tambah field setelah picking_type_id -->
+            <xpath expr="//field[@name='picking_type_id']" position="after">
+                <field name="warehouse_to_id" 
+                       string="Gudang Tujuan"
+                       required="transfer_state in ('draft', 'submitted')"
+                       readonly="transfer_state not in ('draft')"/>
+                <field name="request_note" 
+                       string="Alasan / Catatan"
+                       placeholder="Masukkan alasan atau catatan untuk request ini..."/>
+            </xpath>
+
+            <!-- Tambah informasi request lines -->
+            <xpath expr="//page[@name='operations']" position="before">
+                <page string="Request Info" name="request_info">
+                    <group>
+                        <group>
+                            <field name="warehouse_to_id" string="Gudang Tujuan"/>
+                            <field name="transfer_state" string="Status Transfer"/>
+                        </group>
+                        <group>
+                            <field name="request_date" string="Tanggal Request" readonly="1"/>
+                            <field name="approved_by" string="Disetujui Oleh" readonly="1"/>
+                            <field name="approved_date" string="Tanggal Approve" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="request_note" 
+                               string="Alasan / Catatan"
+                               nolabel="1"
+                               placeholder="Masukkan alasan atau catatan untuk request ini..."/>
+                    </group>
+                    <separator string="Catatan"/>
+                    <div class="alert alert-info" role="alert">
+                        <strong>Info:</strong> Gunakan tab "Operations" atau "Detailed Operations" 
+                        untuk menambahkan detail produk yang akan di-request.
+                    </div>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- List View (Odoo 18) -->
+    <record id="view_stock_picking_branch_request_list" model="ir.ui.view">
+        <field name="name">stock.picking.branch.request.list</field>
+        <field name="model">stock.picking</field>
+        <field name="arch" type="xml">
+            <list string="Branch Requests" 
+                  decoration-info="transfer_state == 'draft'"
+                  decoration-warning="transfer_state == 'submitted'"
+                  decoration-success="transfer_state == 'approved'"
+                  decoration-danger="transfer_state == 'rejected'"
+                  multi_edit="1">
+                <field name="name" string="Request Number"/>
+                <field name="scheduled_date" string="Tanggal Dijadwalkan"/>
+                <field name="partner_id" string="Partner" optional="hide"/>
+                <field name="location_id" string="Lokasi Asal"/>
+                <field name="warehouse_to_id" string="Gudang Tujuan"/>
+                <field name="picking_type_id" string="Operation Type" optional="hide"/>
+                <field name="request_note" string="Catatan"/>
+                <field name="transfer_state" string="Status" widget="badge"
+                       decoration-info="transfer_state == 'draft'"
+                       decoration-warning="transfer_state == 'submitted'"
+                       decoration-success="transfer_state == 'approved'"
+                       decoration-danger="transfer_state == 'rejected'"/>
+                <field name="state" string="Picking Status" widget="badge" optional="hide"/>
+                <field name="user_id" string="Responsible" widget="many2one_avatar_user" optional="show"/>
+                <field name="approved_by" string="Approved By" widget="many2one_avatar_user" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_stock_picking_branch_request_search" model="ir.ui.view">
+        <field name="name">stock.picking.branch.request.search</field>
+        <field name="model">stock.picking</field>
+        <field name="arch" type="xml">
+            <search string="Search Branch Requests">
+                <field name="name" string="Request Number"/>
+                <field name="warehouse_to_id" string="Gudang Tujuan"/>
+                <field name="location_id" string="Lokasi Asal"/>
+                <field name="request_note" string="Catatan"/>
+                <field name="user_id" string="Responsible"/>
+                
+                <filter string="Draft" name="filter_draft" 
+                        domain="[('transfer_state', '=', 'draft')]"/>
+                <filter string="Submitted" name="filter_submitted" 
+                        domain="[('transfer_state', '=', 'submitted')]"/>
+                <filter string="Approved" name="filter_approved" 
+                        domain="[('transfer_state', '=', 'approved')]"/>
+                <filter string="Rejected" name="filter_rejected" 
+                        domain="[('transfer_state', '=', 'rejected')]"/>
+                
+                <separator/>
+                <filter string="My Requests" name="filter_my_requests" 
+                        domain="[('user_id', '=', uid)]"/>
+                
+                <separator/>
+                <filter string="Today" name="filter_today" 
+                        domain="[('scheduled_date', '&gt;=', context_today().strftime('%Y-%m-%d')),
+                                ('scheduled_date', '&lt;', (context_today() + relativedelta(days=1)).strftime('%Y-%m-%d'))]"/>
+                <filter string="This Week" name="filter_week" 
+                        domain="[('scheduled_date', '&gt;=', (context_today() - relativedelta(weeks=1)).strftime('%Y-%m-%d'))]"/>
+                
+                <group expand="0" string="Group By">
+                    <filter string="Status Transfer" name="group_transfer_state" 
+                            context="{'group_by': 'transfer_state'}"/>
+                    <filter string="Gudang Tujuan" name="group_warehouse" 
+                            context="{'group_by': 'warehouse_to_id'}"/>
+                    <filter string="Responsible" name="group_user" 
+                            context="{'group_by': 'user_id'}"/>
+                    <filter string="Scheduled Date" name="group_scheduled_date" 
+                            context="{'group_by': 'scheduled_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action Window -->
+    <record id="action_stock_picking_branch_request" model="ir.actions.act_window">
+        <field name="name">Branch Transfer Requests</field>
+        <field name="res_model">stock.picking</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('picking_type_code', '=', 'internal')]</field>
+        <field name="context">{
+            'default_picking_type_code': 'internal',
+            'search_default_filter_draft': 1,
+            'search_default_filter_submitted': 1,
+        }</field>
+        <field name="search_view_id" ref="view_stock_picking_branch_request_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first branch transfer request
+            </p>
+            <p>
+                Request untuk transfer barang antar gudang/cabang.
+                Klik tombol "New" untuk membuat request baru.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu Item -->
+    <menuitem id="menu_stock_picking_branch_request"
+              name="Branch Transfer Requests"
+              parent="stock.menu_stock_warehouse_mgmt"
+              action="action_stock_picking_branch_request"
+              sequence="10"/>
+</odoo>

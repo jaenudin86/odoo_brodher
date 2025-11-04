@@ -1,0 +1,9 @@
+<odoo>
+  <record id="seq_branch_request" model="ir.sequence">
+    <field name="name">Branch Request</field>
+    <field name="code">branch.request</field>
+    <field name="prefix">BRQ</field>
+    <field name="padding">4</field>
+    <field name="company_id" eval="False"/>
+  </record>
+</odoo>
