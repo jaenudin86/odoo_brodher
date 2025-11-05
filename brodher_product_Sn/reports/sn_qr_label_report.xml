@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    Report Action
+    <record id="action_report_sn_qr_labels" model="ir.actions.report">
+        <field name="name">QR Code Labels</field>
+        <field name="model">product.serial.number</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">product_serial_number.report_sn_qr_labels</field>
+        <field name="report_file">product_serial_number.report_sn_qr_labels</field>
+        <field name="binding_model_id" ref="model_product_serial_number"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="base.paperformat_a4"/>
+    </record>
+
+    <!-- Report Template -->
+    <template id="report_sn_qr_labels">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="sn">
+                <t t-call="web.external_layout">
+                    <div class="page" style="page-break-after: always;">
+                        <div class="text-center" style="margin-top: 50px;">
+                            <!-- Product Name -->
+                            <h3><t t-esc="sn.product_tmpl_id.name"/></h3>
+                            
+                            <!-- Product Variant if exists -->
+                            <t t-if="sn.product_id">
+                                <h4><t t-esc="sn.product_id.name"/></h4>
+                            </t>
+                            
+                            <!-- QR Code -->
+                            <div style="margin: 30px 0;">
+                                <img t-att-src="image_data_uri(sn.qr_code)" 
+                                     style="max-width: 300px; max-height: 300px;"/>
+                            </div>
+                            
+                            <!-- Serial Number -->
+                            <h2 style="font-family: monospace; letter-spacing: 3px;">
+                                <t t-esc="sn.name"/>
+                            </h2>
+                            
+                            <!-- Additional Info -->
+                            <table class="table table-sm" style="margin: 20px auto; max-width: 400px;">
+                                <tr>
+                                    <td><strong>Type:</strong></td>
+                                    <td><span t-if="sn.sn_type == 'M'">Man</span><span t-else="">Woman</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Year:</strong></td>
+                                    <td><t t-esc="sn.year_code"/></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Status:</strong></td>
+                                    <td><t t-esc="sn.status.title()"/></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Generated:</strong></td>
+                                    <td><t t-esc="sn.generated_date.strftime('%Y-%m-%d')"/></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

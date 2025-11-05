@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Stock Picking Form View -->
+    <record id="stock_picking_form_view_inherit_sn" model="ir.ui.view">
+        <field name="name">stock.picking.form.inherit.sn</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            
+            <!-- Add Stat Buttons -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button class="oe_stat_button" 
+                        type="object" 
+                        name="action_view_sn_moves"
+                        icon="fa-barcode">
+                    <field string="Scanned SN" name="scanned_sn_count" widget="statinfo"/>
+                </button>
+            </xpath>
+            
+            <!-- Add Scan Button in Header -->
+            <xpath expr="//header" position="inside">
+                <button name="action_scan_serial_number" 
+                        string="Scan Serial Number" 
+                        type="object" 
+                        class="oe_highlight"
+                        icon="fa-qrcode"
+                        invisible="state not in ['assigned', 'confirmed']"/>
+            </xpath>
+            
+            <!-- Add Tab for Scanned SNs -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Scanned Serial Numbers" name="scanned_sn">
+                    <field name="sn_move_ids" readonly="1">
+                        <list>
+                            <field name="serial_number_name"/>
+                            <field name="product_tmpl_id"/>
+                            <field name="move_type"/>
+                            <field name="location_src_id"/>
+                            <field name="location_dest_id"/>
+                            <field name="move_date"/>
+                            <field name="user_id"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+            
+        </field>
+    </record>
+</odoo>

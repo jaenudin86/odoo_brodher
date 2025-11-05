@@ -1,24 +1,25 @@
-# -*- coding: utf-8 -*-
 {
     'name': 'Product Serial Number Generator',
     'version': '18.0.1.0.0',
     'category': 'Inventory',
-    'summary': 'Generate Serial Number for Products with Auto Reset per Year',
-    'description': """
-        Generate Serial Number otomatis untuk produk
-        - Format: PF + 2 digit tahun + M/W + 7 digit nomor urut
-        - Auto reset nomor urut setiap awal tahun
-        - Terpisah counter untuk Man (M) dan Woman (W)
-    """,
-    'depends': ['product', 'stock'],
+    'summary': 'Generate Serial Number with QR Code and Scanning',
+    'depends': ['product', 'stock', 'purchase', 'sale'],
+    'external_dependencies': {
+        'python': ['qrcode'],
+    },
     'data': [
-        # 'security/ir.model.access.csv',
+        'security/ir.model.access.csv',
         'wizard/product_sn_wizard_views.xml',
-        'wizard/message_wizard_views.xml',  # TAMBAHKAN INI
+        'wizard/message_wizard_views.xml',
+        'wizard/scan_sn_wizard_views.xml',
+        'wizard/sn_validation_wizard_views.xml',  # TAMBAHKAN
         'views/product_template_views.xml',
         'views/serial_number_views.xml',
+        'views/sn_move_views.xml',
+        'views/stock_picking_views.xml',
+        # 'reports/sn_qr_label_report.xml',
     ],
     'installable': True,
     'application': False,
-    'auto_install': False,
+    'license': 'LGPL-3',
 }

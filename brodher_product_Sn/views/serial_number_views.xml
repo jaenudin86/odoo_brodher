@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Serial Number Tree View -->
+    <!-- Tree View -->
     <record id="product_serial_number_tree_view" model="ir.ui.view">
         <field name="name">product.serial.number.tree</field>
         <field name="model">product.serial.number</field>
@@ -13,24 +13,39 @@
                 <field name="year_code"/>
                 <field name="sequence_number"/>
                 <field name="status"/>
+                <field name="location_id"/>
                 <field name="qc_passed"/>
                 <field name="generated_date"/>
             </list>
         </field>
     </record>
 
-    <!-- Serial Number Form View -->
+    <!-- Form View -->
     <record id="product_serial_number_form_view" model="ir.ui.view">
         <field name="name">product.serial.number.form</field>
         <field name="model">product.serial.number</field>
         <field name="arch" type="xml">
             <form string="Serial Number" create="false" delete="false">
+                <header>
+                    <button name="action_print_qr_labels" 
+                            string="Print QR Label" 
+                            type="object" 
+                            class="oe_highlight"
+                            icon="fa-print"/>
+                </header>
                 <sheet>
                     <div class="oe_title">
                         <h1>
                             <field name="name" readonly="1"/>
                         </h1>
                     </div>
+                    
+                    <group>
+                        <group>
+                            <field name="qr_code" widget="image" class="oe_avatar"/>
+                        </group>
+                    </group>
+                    
                     <group>
                         <group>
                             <field name="product_tmpl_id" readonly="1"/>
@@ -42,22 +57,91 @@
                         <group>
                             <field name="status"/>
                             <field name="qc_passed"/>
+                            <field name="location_id"/>
+                            <field name="last_move_date" readonly="1"/>
                             <field name="generated_date" readonly="1"/>
                         </group>
                     </group>
+                    
+                    <notebook>
+                        <page string="Move History">
+                            <field name="move_history_ids" readonly="1">
+                                <list>
+                                    <field name="move_date"/>
+                                    <field name="move_type"/>
+                                    <field name="location_src_id"/>
+                                    <field name="location_dest_id"/>
+                                    <field name="user_id"/>
+                                    <field name="notes"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
                 </sheet>
             </form>
         </field>
     </record>
 
-    <!-- Serial Number Action -->
+    <!-- Action -->
     <record id="product_serial_number_action" model="ir.actions.act_window">
         <field name="name">Serial Numbers</field>
         <field name="res_model">product.serial.number</field>
         <field name="view_mode">list,form</field>
     </record>
 
-    <!-- Menu Item -->
+    <!-- Action for Bulk Print -->
+    <record id="action_print_qr_labels_bulk" model="ir.actions.server">
+        <field name="name">Print QR Labels</field>
+        <field name="model_id" ref="model_product_serial_number"/>
+        <field name="binding_model_id" ref="model_product_serial_number"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+action = records.action_print_qr_labels()
+        </field>
+    </record>
+
+    <!-- Action for Export Excel -->
+    <record id="action_export_excel_bulk" model="ir.actions.server">
+        <field name="name">Export to Excel</field>
+        <field name="model_id" ref="model_product_serial_number"/>
+        <field name="binding_model_id" ref="model_product_serial_number"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+action = records.action_export_excel()
+        </field>
+    </record>
+    <!-- Tambahkan di akhir file sebelum </odoo> -->
+
+<!-- Serial Number Search View -->
+<record id="product_serial_number_search_view" model="ir.ui.view">
+    <field name="name">product.serial.number.search</field>
+    <field name="model">product.serial.number</field>
+    <field name="arch" type="xml">
+        <search string="Search Serial Numbers">
+            <field name="name" 
+                   string="Serial Number" 
+                   filter_domain="[('name', 'ilike', self)]"/>
+            <field name="product_tmpl_id"/>
+            <field name="product_id"/>
+            <field name="status"/>
+            <field name="location_id"/>
+            
+            <filter string="Available" name="available" domain="[('status', '=', 'available')]"/>
+            <filter string="Reserved" name="reserved" domain="[('status', '=', 'reserved')]"/>
+            <filter string="Used" name="used" domain="[('status', '=', 'used')]"/>
+            
+            <group expand="0" string="Group By">
+                <filter string="Product" name="group_product" context="{'group_by': 'product_tmpl_id'}"/>
+                <filter string="Status" name="group_status" context="{'group_by': 'status'}"/>
+                <filter string="Location" name="group_location" context="{'group_by': 'location_id'}"/>
+            </group>
+        </search>
+    </field>
+</record>
+
+    <!-- Menu -->
     <menuitem id="menu_product_serial_number"
               name="Serial Numbers"
               parent="stock.menu_stock_root"

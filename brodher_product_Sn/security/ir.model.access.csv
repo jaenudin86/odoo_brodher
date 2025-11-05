@@ -1,0 +1,8 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_product_serial_number_user,product.serial.number.user,model_product_serial_number,stock.group_stock_user,1,1,1,0
+access_product_serial_number_manager,product.serial.number.manager,model_product_serial_number,stock.group_stock_manager,1,1,1,1
+access_product_sn_wizard_user,product.sn.wizard.user,model_product_sn_wizard,stock.group_stock_user,1,1,1,1
+access_message_wizard_user,message.wizard.user,model_message_wizard,base.group_user,1,1,1,1
+access_scan_sn_wizard_user,scan.sn.wizard.user,model_scan_sn_wizard,stock.group_stock_user,1,1,1,1
+access_product_sn_move_user,product.sn.move.user,model_product_sn_move,stock.group_stock_user,1,1,1,0
+access_product_sn_move_manager,product.sn.move.manager,model_product_sn_move,stock.group_stock_manager,1,1,1,1
