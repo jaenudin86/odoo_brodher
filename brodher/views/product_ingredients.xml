@@ -22,6 +22,7 @@
    
             </xpath> -->
 
+
     </field>
   </record>
   <record id="view_product_tree_ingredients" model="ir.ui.view">
