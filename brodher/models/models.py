@@ -17,6 +17,7 @@
 #         for record in self:
 #             record.value2 = float(record.value) / 100
 
+
 from odoo import api, fields, models
 from datetime import datetime
 
