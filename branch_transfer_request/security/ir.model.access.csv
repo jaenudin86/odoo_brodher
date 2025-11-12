@@ -1,1 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_internal_transfer_request_user,internal.transfer.request.user,model_internal_transfer_request,group_internal_transfer_user,1,1,1,0
+access_internal_transfer_request_manager,internal.transfer.request.manager,model_internal_transfer_request,group_internal_transfer_manager,1,1,1,1
+access_internal_transfer_request_line_user,internal.transfer.request.line.user,model_internal_transfer_request_line,group_internal_transfer_user,1,1,1,1
+access_internal_transfer_request_line_manager,internal.transfer.request.line.manager,model_internal_transfer_request_line,group_internal_transfer_manager,1,1,1,1

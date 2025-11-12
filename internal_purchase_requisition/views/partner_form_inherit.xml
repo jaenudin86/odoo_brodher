@@ -1,0 +1,36 @@
+<odoo>
+    <data>
+        <record id="view_partner_form_inherit_vendor_registration" model="ir.ui.view">
+            <field name="name">res.partner.form.inherit.vendor.registration</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="arch" type="xml">
+                <!-- Add the Vendor Registration page in the notebook -->
+                <notebook position="inside">
+                    <page string="Vendor Registration" name="vendor_registration" invisible="not is_company">
+                        <group>
+                            <group string="Registration Documents">
+                                <field name="commercial_registration" filename="commercial_registration_filename"/>
+                                <field name="municipal_license" filename="municipal_license_filename"/>
+                                <field name="computer_card" filename="computer_card_filename"/>
+                                <field name="classification_certificate" filename="classification_certificate_filename"/>
+                                <field name="tax_card" filename="tax_card_filename"/>
+                                <field name="authorized_signatories_qid" filename="authorized_signatories_qid_filename"/>
+                            </group>
+                            <group string="Additional Documents">
+                                <field name="company_profile" filename="company_profile_filename"/>
+                                <field name="pre_qualification_form" filename="pre_qualification_form_filename"/>
+                                <field name="moi_approved_documents" filename="moi_approved_documents_filename"/>
+                                <field name="kahramaa_certificate" filename="kahramaa_certificate_filename"/>
+                                <field name="qcd_certificate" filename="qcd_certificate_filename"/>
+                            </group>
+                        </group>
+                        <group>
+                            <field name="verified_partner"/>
+                        </group>
+                    </page>
+                </notebook>
+            </field>
+        </record>
+    </data>
+</odoo>

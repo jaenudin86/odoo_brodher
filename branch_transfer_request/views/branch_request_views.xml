@@ -1,87 +1,284 @@
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record id="view_branch_request_form" model="ir.ui.view">
-        <field name="name">branch.request.form</field>
-        <field name="model">branch.request</field>
+    
+    <!-- Internal Transfer Request Tree View -->
+    <record id="view_internal_transfer_request_tree" model="ir.ui.view">
+        <field name="name">internal.transfer.request.tree</field>
+        <field name="model">internal.transfer.request</field>
         <field name="arch" type="xml">
-            <form string="Branch Request">
+            <list string="Internal Transfer Requests" decoration-info="state=='draft'" 
+                  decoration-warning="state=='submitted'" decoration-success="state=='done'">
+                <field name="name" string="Request #"/>
+                <field name="request_date"/>
+                <field name="requester_id"/>
+                <field name="source_warehouse_id"/>
+                <field name="destination_warehouse_id"/>
+                <field name="priority" widget="priority"/>
+                <field name="state" widget="badge" 
+                       decoration-info="state in ('draft', 'submitted')"
+                       decoration-warning="state in ('approved', 'picking')"
+                       decoration-success="state in ('done', 'put_away')"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Internal Transfer Request Form View -->
+    <record id="view_internal_transfer_request_form" model="ir.ui.view">
+        <field name="name">internal.transfer.request.form</field>
+        <field name="model">internal.transfer.request</field>
+        <field name="arch" type="xml">
+            <form string="Internal Transfer Request">
                 <header>
-                    <!-- Added oe_highlight for visual emphasis on primary actions -->
-                    <button name="action_approve" type="object" string="Approve" states="draft" class="oe_highlight"/>
-                    <button name="action_done" type="object" string="Mark as Done" states="approved" class="oe_highlight"/>
-                    <button name="action_cancel" type="object" string="Cancel" states="draft,approved"/>
-                    <!-- Statusbar visible typically shows only forward progress states -->
-                    <field name="state" widget="statusbar" statusbar_visible="draft,approved,done"/>
+                    <button name="action_submit" string="Submit for Approval" 
+                            type="object" class="oe_highlight" 
+                            invisible="state != 'draft'"/>
+                    
+                    <button name="action_approve" string="Approve" 
+                            type="object" class="oe_highlight" 
+                            invisible="state != 'submitted'"
+                            groups="stock.group_stock_manager"/>
+                    
+                    <button name="action_reject" string="Reject" 
+                            type="object" 
+                            invisible="state != 'submitted'"
+                            groups="stock.group_stock_manager"/>
+                    
+                    <button name="action_view_picking" string="View Picking" 
+                            type="object" class="oe_highlight"
+                            invisible="not picking_id"/>
+                    
+                    <button name="action_view_putaway" string="View Put Away" 
+                            type="object" class="oe_highlight"
+                            invisible="not putaway_id"/>
+                    
+                    <button name="action_cancel" string="Cancel" 
+                            type="object" 
+                            invisible="state in ('done', 'cancelled', 'put_away')"/>
+                    
+                    <field name="state" widget="statusbar" 
+                           statusbar_visible="draft,submitted,approved,picking,in_transit,received,done"/>
                 </header>
+                
                 <sheet>
-                    <!-- Standard Odoo title block for the document reference -->
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_picking" type="object" 
+                                class="oe_stat_button" icon="fa-truck"
+                                invisible="not picking_id">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">Delivery</span>
+                            </div>
+                        </button>
+                    </div>
+                    
                     <div class="oe_title">
                         <h1>
                             <field name="name" readonly="1"/>
                         </h1>
                     </div>
                     
-                    <!-- Group fields into two columns for better layout -->
                     <group>
                         <group>
-                            <field name="request_date"/>
-                            <field name="source_branch_id"/>
+                            <field name="requester_id" readonly="state != 'draft'"/>
+                            <field name="request_date" readonly="state != 'draft'"/>
+                            <field name="priority" widget="priority" readonly="state != 'draft'"/>
                         </group>
                         <group>
-                            <field name="dest_branch_id"/>
+                            <field name="approver_id" readonly="1"/>
+                            <field name="approval_date" readonly="1"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    
+                    <group>
+                        <group string="Source">
+                            <field name="source_warehouse_id" readonly="state != 'draft'"/>
+                            <field name="source_location_id" readonly="state != 'draft'"
+                                   options="{'no_create': True}"/>
+                        </group>
+                        <group string="Destination">
+                            <field name="destination_warehouse_id" readonly="state != 'draft'"/>
+                            <field name="destination_location_id" readonly="state != 'draft'"
+                                   options="{'no_create': True}"/>
                         </group>
                     </group>
                     
                     <notebook>
-                        <!-- <page string="Products">
-                            <field name="line_ids">
-                                <tree editable="bottom">
-                                    <field name="product_id"/>
-                                    <field name="product_uom_qty"/>
-                                    
-                                    <field name="product_uom"/>
-                                </tree>
+                        <page string="Products" name="products">
+                            <field name="line_ids" readonly="state != 'draft'">
+                                <list editable="bottom">
+                                    <field name="product_id" 
+                                           options="{'no_create': True}"/>
+                                    <field name="barcode" readonly="1"/>
+                                    <field name="quantity_requested"/>
+                                    <field name="quantity_available" readonly="1"/>
+                                    <field name="product_uom_id" 
+                                           options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="notes"/>
+                                </list>
                             </field>
-                        </page> -->
+                        </page>
+                        
+                        <page string="Additional Info" name="additional_info">
+                            <group>
+                                <field name="notes" placeholder="Add any additional notes here..."/>
+                            </group>
+                            <group string="Rejection Info" invisible="state != 'rejected'">
+                                <field name="rejection_reason" readonly="1"/>
+                            </group>
+                        </page>
+                        
+                        <page string="Related Transfers" name="transfers">
+                            <group>
+                                <field name="picking_id" readonly="1"/>
+                                <field name="putaway_id" readonly="1"/>
+                            </group>
+                        </page>
                     </notebook>
                 </sheet>
+                
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
             </form>
         </field>
     </record>
 
-    <record id="view_branch_request_tree" model="ir.ui.view">
-        <field name="name">branch.request.tree</field>
-        <field name="model">branch.request</field>
+    <!-- Rejection Wizard -->
+    <record id="view_reject_transfer_request_wizard" model="ir.ui.view">
+        <field name="name">reject.transfer.request.wizard</field>
+        <field name="model">internal.transfer.request</field>
         <field name="arch" type="xml">
-            <!-- Added tree decorations for visual status indication -->
-            <tree decoration-success="state == 'done'" decoration-danger="state == 'cancel'">
-                <field name="name"/>
-                <field name="request_date"/>
-                <field name="source_branch_id"/>
-                <field name="dest_branch_id"/>
-                <field name="state"/>
-            </tree>
+            <form string="Reject Request">
+                <group>
+                    <field name="rejection_reason" required="1" 
+                           placeholder="Please provide reason for rejection..."/>
+                </group>
+                <footer>
+                    <button string="Confirm Rejection" type="object" 
+                            name="action_reject" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
         </field>
     </record>
 
-    <record id="action_branch_request" model="ir.actions.act_window">
-        <field name="name">Branch Requests</field>
-        <field name="res_model">branch.request</field>
-        <field name="view_mode">tree,form</field>
+    <!-- Search View -->
+    <record id="view_internal_transfer_request_search" model="ir.ui.view">
+        <field name="name">internal.transfer.request.search</field>
+        <field name="model">internal.transfer.request</field>
+        <field name="arch" type="xml">
+            <search string="Search Transfer Requests">
+                <field name="name" string="Request Number"/>
+                <field name="requester_id"/>
+                <field name="source_warehouse_id"/>
+                <field name="destination_warehouse_id"/>
+                
+                <filter string="My Requests" name="my_requests" 
+                        domain="[('requester_id', '=', uid)]"/>
+                <filter string="Draft" name="draft" 
+                        domain="[('state', '=', 'draft')]"/>
+                <filter string="Waiting Approval" name="submitted" 
+                        domain="[('state', '=', 'submitted')]"/>
+                <filter string="Approved" name="approved" 
+                        domain="[('state', '=', 'approved')]"/>
+                <filter string="In Progress" name="in_progress" 
+                        domain="[('state', 'in', ['picking', 'in_transit', 'received'])]"/>
+                <filter string="Urgent" name="urgent" 
+                        domain="[('priority', '=', '1')]"/>
+                
+                <separator/>
+                <filter string="Request Date" name="request_date" 
+                        date="request_date"/>
+                
+                <group expand="0" string="Group By">
+                    <filter string="Requester" name="group_requester" 
+                            context="{'group_by': 'requester_id'}"/>
+                    <filter string="Source Warehouse" name="group_source" 
+                            context="{'group_by': 'source_warehouse_id'}"/>
+                    <filter string="Destination Warehouse" name="group_destination" 
+                            context="{'group_by': 'destination_warehouse_id'}"/>
+                    <filter string="Status" name="group_state" 
+                            context="{'group_by': 'state'}"/>
+                    <filter string="Request Date" name="group_request_date" 
+                            context="{'group_by': 'request_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_internal_transfer_request" model="ir.actions.act_window">
+        <field name="name">Internal Transfer Requests</field>
+        <field name="res_model">internal.transfer.request</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_internal_transfer_request_search"/>
+        <field name="context">{
+            'search_default_my_requests': 1
+        }</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
-                Create a new branch transfer request to move products between your company branches.
+                Create your first Internal Transfer Request
+            </p>
+            <p>
+                Request internal transfers between warehouses/locations with approval workflow.
             </p>
         </field>
     </record>
 
-    <menuitem id="menu_branch_request_root" 
-              name="Branch Transfer" 
-              parent="stock.menu_stock_root" 
-              sequence="20"/> <!-- Added sequence for better placement -->
-              
-    <menuitem id="menu_branch_request" 
-              name="Requests" 
-              parent="menu_branch_request_root" 
-              action="action_branch_request" 
-              sequence="1"/>
+    <!-- Menu Items -->
+    <!-- <menuitem id="menu_internal_transfer_root"
+              name="Internal Transfers"
+              parent="stock.menu_stock_root"
+              sequence="10"/>
+    
+    <menuitem id="menu_internal_transfer_request"
+              name="Transfer Requests"
+              parent="menu_internal_transfer_root"
+              action="action_internal_transfer_request"
+              sequence="1"/> -->
+
+    <!-- Barcode Configuration for Picking -->
+    <record id="view_picking_form_barcode_internal" model="ir.ui.view">
+        <field name="name">stock.picking.form.barcode.internal</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_open_label_type" 
+                        string="Print Labels" 
+                        type="object"
+                        invisible="state not in ('assigned', 'confirmed')"
+                        groups="stock.group_stock_user"/>
+            </xpath>
+            
+            <xpath expr="//field[@name='move_ids_without_package']/list" position="attributes">
+                <attribute name="decoration-success">quantity == product_uom_qty and state == 'done'</attribute>
+                <attribute name="decoration-info">quantity &lt; product_uom_qty and state != 'done'</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Sequence -->
+    <record id="seq_internal_transfer_request" model="ir.sequence">
+        <field name="name">Internal Transfer Request</field>
+        <field name="code">internal.transfer.request</field>
+        <field name="prefix">ITR/%(year)s/</field>
+        <field name="padding">5</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <!-- Cron Job -->
+    <!-- <record id="cron_check_internal_transfer_pickings" model="ir.cron">
+        <field name="name">Check Internal Transfer Pickings</field>
+        <field name="model_id" ref="model_internal_transfer_request"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_check_pickings()</field>
+        <field name="interval_number">15</field>
+        <field name="interval_type">minutes</field>
+        <field name="numbercall">-1</field>
+        <field name="active" eval="True"/>
+    </record> -->
+
 </odoo>
