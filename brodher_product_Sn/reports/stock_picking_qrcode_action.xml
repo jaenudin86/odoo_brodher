@@ -17,31 +17,28 @@
     <field name="binding_model_id" ref="stock.model_stock_picking"/>
     <field name="binding_type">report</field>
 </record>
-<template id="brodher.stock_picking_qrcode_report">
-    <t t-call="web.basic_layout">
-        <t t-foreach="docs" t-as="picking">
-            <div style="display: flex; flex-wrap: wrap;">
-                <t t-foreach="picking.move_line_ids" t-as="line">
-                    <t t-if="line.lot_id">
-                        <!-- <t t-foreach="range(int(line.product_uom_qty))" t-as="i"> -->
-                            <div style="width: 33%; text-align: center; margin-bottom: 10px;">
-                               <strong><t t-esc="line.product_id.display_name"/></strong><br/>
-                                <span><t t-esc="line.lot_id.name"/></span><br/>
-                               <img t-att-src="'/report/barcode/QR/%s' % line.lot_id.name" style="width:100px;height:100px;"/>
-                            </div>
-                        <!-- </t> -->
+<template id="stock_picking_qrcode_report">
+        <t t-call="web.basic_layout">
+            <t t-foreach="docs" t-as="picking">
+                <div style="display: flex; flex-wrap: wrap;">
+                    <t t-foreach="picking.sn_move_ids" t-as="sn_move">
+                        <t t-set="sn" t-value="sn_move.serial_number_id"/>
+                        <div style="width: 33%; text-align: center; margin-bottom: 10px;">
+                            <strong><t t-esc="sn.product_id.display_name if sn.product_id else sn.product_tmpl_id.name"/></strong><br/>
+                            <span><t t-esc="sn.name"/></span><br/>
+                            <img t-att-src="'/report/barcode/QR/%s' % sn.name" style="width:100px;height:100px;"/>
+                        </div>
                     </t>
-                </t>
-            </div>
+                </div>
+            </t>
         </t>
-    </t>
-</template>
+    </template>
 <template id="brodher.stock_picking_qrcode_barcode_report">
     <t t-call="web.basic_layout">
         <t t-foreach="docs" t-as="picking">
             <div style="display: flex; flex-wrap: wrap;">
                 <t t-foreach="picking.move_line_ids" t-as="line">
-                    <t t-if="line.lot_id">
+                    <!-- <t t-if="line.lot_id"> -->
                         <!-- <t t-foreach="range(int(line.product_uom_qty))" t-as="i"> -->
                             <div style="width: 33%; text-align: center; margin-bottom: 10px;">
                                <strong><t t-esc="line.product_id.display_name"/></strong><br/>
@@ -50,7 +47,7 @@
                                  style="width:100px; height:100px;"/>
                             </div>
                         <!-- </t> -->
-                    </t>
+                    <!-- </t> -->
                 </t>
             </div>
         </t>
