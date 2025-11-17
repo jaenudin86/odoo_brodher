@@ -56,3 +56,81 @@
   </record>
 
 </odoo>
+<!-- <odoo>
+    <record id="view_partner_form_inherit_dob" model="ir.ui.view">
+        <field name="name">res.partner.form.inherit.dob</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Contoh taruh setelah field email -->
+            <xpath expr="//field[@name='email']" position="after">
+                <field name="date_of_birth"/>
+            </xpath>
+
+        </field>
+    </record>
+</odoo>
+<odoo>
+    <record id="view_partner_form_supplier_info" model="ir.ui.view">
+        <field name="name">res.partner.form.supplier.info</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+
+        <field name="arch" type="xml">
+
+            <!-- Tambah TAB baru -->
+            <xpath expr="//page[@name='sales_purchases']" position="after">
+                <page string="Supplier Info" attrs="{'invisible':[('supplier_rank','=',0)]}">
+
+                    <group string="General Information">
+                        <field name="supplier_id_ktp"/>
+                        <field name="supplier_product"/>
+                        <field name="supplier_status"/>
+                        <field name="company_profile"/>
+                    </group>
+
+                    <group string="PIC Contacts">
+                        <field name="contact_head_pic_name"/>
+                        <field name="contact_head_pic_mobile"/>
+                        <field name="contact_pic1_name"/>
+                        <field name="contact_pic1_mobile"/>
+                        <field name="contact_pic2_name"/>
+                        <field name="contact_pic2_mobile"/>
+                    </group>
+
+                    <group string="Factory Information">
+                        <field name="factory_address"/>
+                        <field name="factory_city"/>
+                        <field name="factory_state"/>
+                        <field name="factory_postal"/>
+                        <field name="factory_country"/>
+                        <field name="factory_phone"/>
+                        <field name="fax"/>
+                        <field name="factory_fax2"/>
+                    </group>
+
+                    <group string="NPWP">
+                        <field name="npwp_name"/>
+                        <field name="npwp_address"/>
+                    </group>
+
+                </page>
+            </xpath>
+
+            <!-- ACCOUNT TAB SECTION -->
+            <xpath expr="//page[@name='accounting']" position="inside">
+                <group string="Bank / Account Info (Supplier)" attrs="{'invisible':[('supplier_rank','=',0)]}">
+                    <field name="bank_currency"/>
+                    <field name="bank_swift"/>
+                    <field name="bank_city"/>
+                    <field name="bank_country"/>
+                    <field name="beneficiary_name"/>
+                </group>
+            </xpath>
+
+        </field>
+    </record>
+</odoo>
+
+ -->
