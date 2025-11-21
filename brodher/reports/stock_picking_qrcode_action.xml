@@ -17,7 +17,7 @@
     <field name="binding_model_id" ref="stock.model_stock_picking"/>
     <field name="binding_type">report</field>
 </record>
-<template id="brodher.stock_picking_qrcode_report">
+<template id="brodher.stock_picking_qrcode_report1">
     <t t-call="web.basic_layout">
         <t t-foreach="docs" t-as="picking">
             <div style="display: flex; flex-wrap: wrap;">
@@ -36,6 +36,22 @@
         </t>
     </t>
 </template>
+    <template id="brodher.stock_picking_qrcode_report">
+        <t t-call="web.basic_layout">
+            <t t-foreach="docs" t-as="picking">
+                <div style="display: flex; flex-wrap: wrap;">
+                    <t t-foreach="picking.sn_move_ids" t-as="sn_move">
+                        <t t-set="sn" t-value="sn_move.serial_number_id"/>
+                        <div style="width: 33%; text-align: center; margin-bottom: 10px;">
+                            <strong><t t-esc="sn.product_id.display_name if sn.product_id else sn.product_tmpl_id.name"/></strong><br/>
+                            <span><t t-esc="sn.name"/></span><br/>
+                            <img t-att-src="'/report/barcode/QR/%s' % sn.name" style="width:100px;height:100px;"/>
+                        </div>
+                    </t>
+                </div>
+            </t>
+        </t>
+    </template>
 <template id="brodher.stock_picking_qrcode_barcode_report">
     <t t-call="web.basic_layout">
         <t t-foreach="docs" t-as="picking">
