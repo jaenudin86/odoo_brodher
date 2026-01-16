@@ -42,76 +42,63 @@ class ProductTemplate(models.Model):
     def create(self, vals):
         # Template tidak membuat barcode/default_code (hanya di variant)
         return super(ProductTemplate, self).create(vals)
+    def _generate_article_number(self, is_article):
+        """Generate default_code:
+        - ATC + DD + MM + YY + Seq(3) jika Is Article = True
+        - PSIT + DD + MM + YY + Seq(3) jika Is Article = False
+        """
+        today = datetime.today()
+        date_str = today.strftime('%d')
+        month_str = today.strftime('%m')
+        year_str = today.strftime('%y')
 
+        prefix = 'ATC' if is_article else 'PSIT'
+        seq_code = 'article.number.sequence' if is_article else 'pist.number.sequence'
 
-class ProductProduct(models.Model):
-    _inherit = 'product.product'
+        # Ambil nomor urut dari ir.sequence
+        sequence = self.env['ir.sequence'].next_by_code(seq_code)
+        if not sequence:
+            sequence = '001'
 
-    static_barcode = fields.Char(string='Barcode Statis', store=True, readonly=True)
+        return f"{prefix}{date_str}{month_str}{year_str}{sequence}"
 
-    # Sinkronisasi field dari template
-    ingredients = fields.Text(related='product_tmpl_id.ingredients', store=True)
-    brand = fields.Char(related='product_tmpl_id.brand', store=True)
-    size = fields.Char(related='product_tmpl_id.size', store=True)
-    is_article = fields.Boolean(related='product_tmpl_id.is_article', store=True)
+class ResPartner(models.Model):
+    _inherit = 'res.partner'
 
-    @api.model
-    def create(self, vals):
-        tmpl_id = vals.get('product_tmpl_id')
-        if tmpl_id:
-            tmpl = self.env['product.template'].browse(tmpl_id)
-            
-            # 1. Generate default_code & barcode Odoo
-            if not vals.get('default_code'):
-                code = tmpl._generate_article_number(tmpl.is_article)
-                vals.update({
-                    'default_code': code,
-                    'barcode': code,
-                })
+    date_of_birth = fields.Date(string='Date of Birth')
+     # Supplier Info
+    supplier_id_ktp = fields.Char(string="Supplier ID / KTP")
+    supplier_product = fields.Char(string="Supplier Product")
+    contact_head_pic_name = fields.Char(string="Contact Head PIC Name")
+    contact_head_pic_mobile = fields.Char(string="Mobile Phone (Head PIC)")
+    contact_pic1_name = fields.Char(string="Contact PIC 1 Name")
+    contact_pic1_mobile = fields.Char(string="Mobile Phone (PIC 1)")
+    contact_pic2_name = fields.Char(string="Contact PIC 2 Name")
+    contact_pic2_mobile = fields.Char(string="Mobile Phone (PIC 2)")
 
-            # 2. KHUSUS ATC: Generate Barcode Statis (xxMyyy)
-            if tmpl.is_article:
-                # xx: Ambil angka saja dari field size
-                size_val = tmpl.size or ""
-                xx = "".join(re.findall(r'\d+', size_val))
-                
-                # M: Konstanta ManasLu
-                m_char = "M"
-                
-                # yyy: 1-3 huruf awal nama parfum
-                # Menggunakan title case agar rapi (Contoh: Elanor -> Ela)
-                name_clean = (tmpl.name or "")[:3].title()
-                
-                vals['static_barcode'] = f"{xx}{m_char}{name_clean}"
-        
-        return super(ProductProduct, self).create(vals)
+    fax = fields.Char(string="Fax")
+    factory_address = fields.Char(string="Factory Address")
+    factory_city = fields.Char(string="City")
+    factory_state = fields.Char(string="State")
+    factory_postal = fields.Char(string="Postal Code")
+    factory_country = fields.Char(string="Country")
+    factory_phone = fields.Char(string="Phone")
+    factory_fax2 = fields.Char(string="Fax 2")
 
-    def write(self, vals):
-        res = super(ProductProduct, self).write(vals)
-        if 'default_code' in vals:
-            for rec in self:
-                if rec.default_code and rec.barcode != rec.default_code:
-                    rec.barcode = rec.default_code
-        return res
+    supplier_status = fields.Selection([
+        ('active', 'Active'),
+        ('inactive', 'Inactive'),
+    ], string="Status", default="active")
 
-    # class ResPartner(models.Model):
-    #     _inherit = 'res.partner'
+    company_profile = fields.Binary(string="Company Profile")
 
-    #     # Field Tambahan sesuai Database Customer di gambar
-    #     customer_ktp = fields.Char(string='Customer ID / KTP')
-    #     date_of_birth = fields.Date(string='Date of Birth')
-    #     # Field penampung code (Internal Reference Odoo biasanya menggunakan 'ref')
-        
-    #     @api.model
-    #     def create(self, vals):
-    #         """
-    #         Generate Customer Code AC0000001 saat create
-    #         """
-    #         if not vals.get('ref'):
-    #             # Memanggil sequence khusus customer
-    #             seq_code = 'customer.code.sequence'
-    #             # Kita gunakan prefix AC langsung di Python agar mudah dikontrol
-    #             seq = self.env['ir.sequence'].next_by_code(seq_code) or '0000001'
-    #             vals['ref'] = f"AC{seq}"
-                
-    #         return super(ResPartner, self).create(vals)
+    # Bank / Account Info (Supplier)
+    bank_currency = fields.Many2one('res.currency', string="Currency")
+    bank_swift = fields.Char(string="Swift Code / Branch")
+    bank_city = fields.Char(string="Bank City")
+    bank_country = fields.Char(string="Bank Country")
+    beneficiary_name = fields.Char(string="Beneficiary Name")
+
+    # NPWP (after Tax ID)
+    npwp_name = fields.Char(string="NPWP Name")
+    npwp_address = fields.Char(string="NPWP Address")

@@ -19,7 +19,7 @@ Long description of module's purpose
 
     # any module necessary for this one to work correctly
     # 'depends': ['product','web'],
-'depends': ['stock', 'website', 'product'],
+'depends': ['stock', 'product'],
 
     # always loaded
     'data': [
